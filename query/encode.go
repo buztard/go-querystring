@@ -258,6 +258,29 @@ func reflectValue(values url.Values, val reflect.Value, scope string) error {
 			continue
 		}
 
+		if sv.Kind() == reflect.Map {
+			for _, k := range sv.MapKeys() {
+				key := valueString(k, opts, sf)
+				val := sv.MapIndex(k)
+
+				if opts.Contains("dotted") {
+					key = fmt.Sprintf("%s.%s", name, key)
+				} else if !opts.Contains("flat") {
+					key = fmt.Sprintf("%s[%s]", name, key)
+				}
+
+				if val.Kind() == reflect.Struct {
+					if err := reflectValue(values, val, key); err != nil {
+						return err
+					}
+					continue
+				}
+
+				value := valueString(val, opts, sf)
+				values.Add(key, value)
+			}
+			continue
+		}
 		values.Add(name, valueString(sv, opts, sf))
 	}
 

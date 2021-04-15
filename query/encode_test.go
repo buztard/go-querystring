@@ -252,6 +252,68 @@ func TestValues_Slices(t *testing.T) {
 	}
 }
 
+func TestValues_Maps(t *testing.T) {
+	tests := []struct {
+		input interface{}
+		want  url.Values
+	}{
+		{
+			struct{ V map[string]string }{},
+			url.Values{},
+		},
+		// string keys
+		{
+			struct {
+				V map[string]string
+			}{map[string]string{"a": "b"}},
+			url.Values{"V[a]": {"b"}},
+		},
+		{
+			struct {
+				V map[string]string `url:",dotted"`
+			}{map[string]string{"a": "b"}},
+			url.Values{"V.a": {"b"}},
+		},
+		{
+			struct {
+				V map[string]string `url:",flat"`
+			}{map[string]string{"a": "b"}},
+			url.Values{"a": {"b"}},
+		},
+		// integer values
+		{
+			struct {
+				V map[int]int
+			}{map[int]int{23: 42}},
+			url.Values{"V[23]": {"42"}},
+		},
+		// // maps with structs
+		// {
+		// 	struct {
+		// 		V map[string]struct{ A, B string }
+		// 	}{map[string]struct{ A, B string }{"a": {"b", "c"}}},
+		// 	url.Values{"V.a.A": {"b"}, "V.b.B": {"c"}},
+		// },
+		// // maps with string lists
+		// {
+		// 	struct {
+		// 		V map[string][]string
+		// 	}{map[string][]string{"a": {"b", "c"}}},
+		// 	url.Values{"V.23": {"b"}},
+		// },
+		// // nested maps
+		// {
+		// 	struct {
+		// 		V map[string]map[string]interface{}
+		// 	}{map[string]map[string]interface{}{"a": {"b": "c"}}},
+		// 	url.Values{"V.23": {"b"}},
+		// },
+	}
+
+	for _, tt := range tests {
+		testValue(t, tt.input, tt.want)
+	}
+}
 func TestValues_NestedTypes(t *testing.T) {
 	type SubNested struct {
 		Value string `url:"value"`
